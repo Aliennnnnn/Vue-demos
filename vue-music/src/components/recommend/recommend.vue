@@ -38,7 +38,7 @@
 	import Scroll from '../../base/scroll/scroll'
 	import Slider from '../../base/slider/slider.vue'
 	import {getRecommend,getDiscList} from '../../api/recommend.js'
-	import {ERR_OK} from '../../api/config.js'
+	import {ERR_OK} from '../../api/config.js' 
 	export default{
 		data() {
 			return {
@@ -67,7 +67,7 @@
 		components: {
 			Slider,
 			Scroll,
-			Loading
+			Loading 
 		}
 	}
 </script>
