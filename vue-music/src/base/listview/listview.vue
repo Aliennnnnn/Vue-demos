@@ -1,16 +1,21 @@
 <template>
-	<scroll class="listview" 
-			:data="data" 
-			ref="listview" 
-			:listenScroll = 'listenScroll'
-			@scroll = "scroll"
-			:probeType = "probeType"
+	<scroll 
+		class="listview" 
+		:data="data" 
+		ref="listview" 
+		:listenScroll = 'listenScroll'
+		@scroll = "scroll"
+		:probeType = "probeType"
 	>
 		<ul>
 			<li class="list-group" ref="listGroup" v-for="group in data">
 				<h2 class="list-group-title">{{ group.title }}</h2>
 				<ul>
-					<li v-for="item in group.items" class="list-group-item">
+					<li 
+						@click="selectItem(item)" 
+						v-for="item in group.items" 
+						class="list-group-item"
+					>
 						<img v-lazy="item.avatar" class="avatar">
 						<span class="name">{{ item.name }}</span>
 					</li>
@@ -89,6 +94,10 @@
 			Loading
 		},
 		methods: {
+			//listview是基础组件，所以它只派发事件，不处理业务逻辑
+			selectItem(item){
+				this.$emit('select',item)
+			},
 			//触摸开始
 			onShortcutTouchStart(e){
 				//获取触摸元素的index
@@ -141,7 +150,7 @@
 				//height:首字母group的高度
 				let height = 0
 				this.listHeight.push(height)
-				console.log(this.listHeight)
+				//console.log(this.listHeight)
 				//循环累加item获取每个首字母group的高度
 				for(let i = 0;i < list.length;i++){
 					let item = list[i]
