@@ -1,8 +1,9 @@
-/*
-* @Author: Aliennnnnn
-* @Date:   2017-08-07 18:57:34
-* @Last Modified by:   Aliennnnnn
-* @Last Modified time: 2017-08-07 21:57:21
-*/
+import * as types from '../store/mutation-types.js'
 
-'use strict';
+export const selectPlay = function({commit,state},{list,index}){
+    commit(types.SET_SEQUENCE_LIST, list)
+    commit(types.SET_PLAYLIST, list)
+    commit(types.SET_CURRENT_INDEX, index)
+    commit(types.SET_FULL_SCREEN, true)
+    commit(types.SET_PLAYING_STATE, true)
+}

@@ -20,7 +20,7 @@
 		</div>
 		<scroll @scroll="scroll" :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" class="list" ref="list">
 			<div class="song-list-wrapper">
-				<song-list :songs="songs"></song-list>
+				<song-list @select="selectItem" :songs="songs"></song-list>
         <div class="loading-container" v-show="!songs.length">
           <loading></loading>
         </div>
@@ -33,7 +33,8 @@
 	import songList from '../../base/song-list/song-list.vue'
 	import Scroll from '../../base/scroll/scroll.vue'
   import Loading from '../../base/loading/loading.vue'
-  import {prefixStyle} from '../../common/js/dom.js'
+  import { prefixStyle } from '../../common/js/dom.js'
+  import { mapActions } from 'vuex'
 
 	const RESERVER_HEIGHT = 40
   const transform = prefixStyle('transform')
@@ -84,7 +85,19 @@
 			},
       back(){
         this.$router.back()
-      }
+      },
+      selectItem(item,index){
+        //这里是播放整个列表，所以不需要使用item
+        this.selectPlay({
+          list: this.songs,
+          index
+        })
+      },
+
+      //mapActions把actions包装成一个类似函数调用的方式
+      ...mapActions([
+        'selectPlay'
+      ])
 		},
 		watch: {
 			scrollY(newY){
@@ -112,11 +125,11 @@
     			zIndex = 10
     			this.$refs.bgImage.style.paddingTop = 0
     			this.$refs.bgImage.style.height = `${RESERVER_HEIGHT}px`
-                this.$refs.playBtn.style.display = 'none'
+          this.$refs.playBtn.style.display = 'none'
     		}else{
     			this.$refs.bgImage.style.paddingTop = '70%'
     			this.$refs.bgImage.style.height = 0
-                this.$refs.playBtn.style.display = ''
+          this.$refs.playBtn.style.display = ''
     		}
     		this.$refs.bgImage.style.zIndex = zIndex
         this.$refs.bgImage.style['transform'] = `scale(${scale})`
