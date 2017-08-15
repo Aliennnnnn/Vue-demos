@@ -1,6 +1,11 @@
 <template>
   <div class="player" v-show="playlist.length>0">
-    <transition>
+    <transition name="normal"
+                @enter="enter"
+                @after-enter="afterEnter"
+                @leave="leave"
+                @after-leave="afterLeave"
+    >
       <div class="normal-player" v-show="fullScreen">
         <div class="background">
           <img width="100%" height="100%" :src="currentSong.image">
@@ -15,7 +20,7 @@
         <div class="middle">
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
+              <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
@@ -38,19 +43,19 @@
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <i></i>
+              <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
-              <i class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i @click="prev" class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
-              <i></i>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="togglePlaying" :class="playIcon"></i>
+            </div>
+            <div class="icon i-right" :class="disableCls">
+              <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-next"></i>
-            </div>
-            <div class="icon i-right">
-              <i class="icon"></i>
+              <i class="icon-not-favorite"></i>
             </div>
           </div>
         </div>
@@ -59,31 +64,58 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img :class="cdCls" width="40" height="40" :src="currentSong.image">
         </div>
         <div class="text">
           <h2 class="name"  v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-
+            <i @click.stop="togglePlaying" :class="miniIcon"></i>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
   </div> 
 </template>
 
 <script type="text/javascript">
 import { mapGetters,mapMutations } from 'vuex'
+import animations from 'create-keyframe-animation' 
+import {prefixStyle} from '../../common/js/dom.js'
+
+const transform = prefixStyle('transform')
+
 export default {
+    data(){
+        return {
+            songReady: false
+        }
+    },
     computed: {
+        cdCls(){
+            return this.playing ? 'play' : 'play pause'
+        },
+        playIcon(){
+             return this.playing ? 'icon-pause' : 'icon-play'
+        },
+        miniIcon(){
+             return this.playing ? 'icon-pause-mini' : 'icon-play-mini'            
+        },
+        disableCls(){
+            return this.songReady ? '' : 'disable'
+        },
+        //mapGetters辅助函数仅仅是将store中的""getters""映射到局部计算属性中,
+        //类似mapState
         ...mapGetters([
             'fullScreen',
             'playlist',
-            'currentSong'
+            'currentSong',
+            'playing',
+            'currentIndex'
         ])
     },
     methods: {
@@ -93,9 +125,141 @@ export default {
         open(){
             this.setFullScreen(true)
         },
+        enter(el, done){
+            const {x, y, scale} = this._getPosAndScale()
+            let animation = {
+                0: {
+                    transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+                },
+                60: {
+                    transform: `translate3d(0, 0, 0) scale(1.1)`
+                },
+                100: {
+                    transform: `translate3d(0, 0, 0) scale(1)`
+                }
+            }
+
+            animations.registerAnimation({
+                name: 'move',
+                animation,
+                presets: {
+                    duration: 500,
+                    easing: 'linear'
+                }
+            })
+
+            animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+        },
+        afterEnter(){
+            animations.unregisterAnimation('move')
+            this.$refs.cdWrapper.style.animation = ''
+        },
+        leave(el, done){
+            this.$refs.cdWrapper.style.transition = 'all 0.4s'
+            const {x, y, scale} = this._getPosAndScale()
+
+            //****当对象名称为变量时，必须使用方括号才能访问**** 
+            this.$refs.cdWrapper.style[transform] = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+            this.$refs.cdWrapper.addEventListener('transitionend', done)
+        },
+        afterLeave(){
+            this.$refs.cdWrapper.style.transition = ''
+            this.$refs.cdWrapper.style[transform] = ''
+        },
+        togglePlaying(){
+            if(!this.songReady) {
+                return
+            }
+            this.setPlayingState(!this.playing)
+        }, 
+        next(){
+            if(!this.songReady) {
+                return
+            }
+            let index = this.currentIndex + 1
+            if(index === this.playlist.length){
+                index = 0
+            }
+            this.setCurrentIndex(index)
+            if(!this.playing){
+                this.togglePlaying()
+            }
+            this.songReady = false
+        },  
+        prev(){
+            if( !this.songReady ) {
+                return
+            }
+            let index = this.currentIndex - 1
+            if( index === -1 ){
+                index = this.playlist.length - 1
+            }
+            this.setCurrentIndex(index)
+            if( !this.playing ){
+                this.togglePlaying()
+            }
+            this.songReady = false
+        },  
+        ready(){
+            this.songReady = true
+        },
+        error(){
+            this.songReady = true
+        },
+        _getPosAndScale(){
+            //mini播放器上cd图片的宽度
+            const targetWidth = 40
+            //mini播放器上cd图片中心坐标到左边的距离
+            const paddingLeft = 40
+            //mini播放器上cd图片中心坐标到底部的距离
+            const paddingBottom = 30
+            //大CD图片顶部到屏幕上部的距离
+            const paddingTop = 80
+            //大CD图片宽度，等于屏幕宽度的80%
+            const width = window.innerWidth * 0.8
+            //初始缩放比例
+            const scale = targetWidth / width
+            //mini播放器上cd图片中心坐标到大CD图片中心坐标的y轴距离
+            const x = -(window.innerWidth/2 - paddingLeft)
+            //mini播放器上cd图片中心坐标到大CD图片中心坐标的x轴距离
+            const y = window.innerHeight - paddingTop - width/2 -paddingBottom
+            return {
+                x,
+                y,
+                scale
+            }
+        },
+        //映射this.setFullScreen() 为 this.$store.commit('SET_FULL_SCREEN')
+        //vuex提供的辅助函数使我们不必写多余的代码就可以在组件中提交Mutations
         ...mapMutations({
-            setFullScreen: 'SET_FULL_SCREEN'
-        })
+            setFullScreen: 'SET_FULL_SCREEN',
+            setPlayingState: 'SET_PLAYING_STATE',
+            setCurrentIndex: 'SET_CURRENT_INDEX'
+        }),
+    },
+    watch: {
+        currentSong() {
+            //延时播放
+            //延时回调，在下次DOM更新循环之后执行
+            //在修改数据后立即使用这个方法，等待DOM更新
+            //eg.
+            //修改数据
+            //DOM没有更新
+            this.$nextTick(() => {
+                //DOM更新了
+                this.$refs.audio.play()
+            })          
+        },
+        playing(newPlaying){
+            const audio = this.$refs.audio
+            if(newPlaying){
+                this.$nextTick(() => {
+                    audio.play()
+                })
+            }else{
+                audio.pause()
+            }
+        }
     }
 }
 </script>

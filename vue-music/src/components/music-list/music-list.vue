@@ -115,7 +115,9 @@
         }else{
           blur = Math.min(20*percent,20)
         }
+        
         //IOS图片下拉高斯模糊，Android不支持
+        //****当对象名称为变量时，必须使用方括号才能访问**** 
         this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
 
         //layer
