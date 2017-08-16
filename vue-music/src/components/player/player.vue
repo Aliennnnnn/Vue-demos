@@ -36,10 +36,11 @@
             <span class="dot"></span>
           </div>
           <div class="progress-wrapper">
-            <span class="time time-l"></span>
+            <span class="time time-l">{{ format(currentTime) }}</span>
             <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent" @percentChange="onProgressBarChange"></progress-bar>
             </div>
-            <span class="time time-r"></span>
+            <span class="time time-r">{{ format(currentSong.duration) }}</span>
           </div>
           <div class="operators">
             <div class="icon i-left">
@@ -71,14 +72,16 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-            <i @click.stop="togglePlaying" :class="miniIcon"></i>
+            <progress-circle :percent="percent">
+              <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+            </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
-    <audio @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
+    <audio @timeupdate="updateTime" @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
   </div> 
 </template>
 
@@ -86,13 +89,16 @@
 import { mapGetters,mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation' 
 import {prefixStyle} from '../../common/js/dom.js'
+import ProgressBar from '../../base/progress-bar/progress-bar'
+import ProgressCircle from '../../base/progress-circle/progress-circle'
 
 const transform = prefixStyle('transform')
 
 export default {
     data(){
         return {
-            songReady: false
+            songReady: false,
+            currentTime: 0
         }
     },
     computed: {
@@ -107,6 +113,9 @@ export default {
         },
         disableCls(){
             return this.songReady ? '' : 'disable'
+        },
+        percent(){
+          return this.currentTime / this.currentSong.duration
         },
         //mapGetters辅助函数仅仅是将store中的""getters""映射到局部计算属性中,
         //类似mapState
@@ -206,6 +215,32 @@ export default {
         error(){
             this.songReady = true
         },
+        updateTime(e){
+          //currentTime 属性设置或返回音频/视频播放的当前位置（以秒计）。
+          this.currentTime = e.target.currentTime
+        },
+        //将时间格式化
+        format(interval){
+          interval = Math.floor(interval)
+          //  | 0,相当于Math.floor()
+          const minute = interval / 60 | 0
+          const second = this._pad(interval % 60)
+          return `${minute}:${second}`
+        },
+        onProgressBarChange(percent){
+          this.$refs.audio.currentTime = this.currentSong.duration * percent
+          if(!this.playing){
+            this.togglePlaying()
+          }
+        },
+        _pad(num, n = 2){
+          let len = num.toString().length
+          while(len<n){
+            num = '0' + num
+            len++
+          }
+          return num
+        },
         _getPosAndScale(){
             //mini播放器上cd图片的宽度
             const targetWidth = 40
@@ -260,6 +295,10 @@ export default {
                 audio.pause()
             }
         }
+    },
+    components: {
+      ProgressBar,
+      ProgressCircle
     }
 }
 </script>
