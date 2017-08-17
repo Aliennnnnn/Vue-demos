@@ -35,12 +35,14 @@
   import Loading from '../../base/loading/loading.vue'
   import { prefixStyle } from '../../common/js/dom.js'
   import { mapActions } from 'vuex'
+  import {playlistMixin} from '../../common/js/mixin.js'
 
 	const RESERVER_HEIGHT = 40
   const transform = prefixStyle('transform')
   const backdrop = prefixStyle('backdrop-filter')
 
 	export default {
+    mixins: [playlistMixin],
 		created() {
 			this.probeType = 3
 			this.listenScroll = true
@@ -80,6 +82,11 @@
       Loading
 		},
 		methods: {
+      handlePlaylist(playlist){
+        const bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
 			scroll(pos){
 				this.scrollY = pos.y
 			},

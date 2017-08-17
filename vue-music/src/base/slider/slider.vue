@@ -145,7 +145,7 @@ import {addClass} from '../../common/js/dom.js'
       position: absolute
       right: 0
       left: 0
-      bottom: 12px
+      top: 135px
       text-align: center
       font-size: 0
       .dot
