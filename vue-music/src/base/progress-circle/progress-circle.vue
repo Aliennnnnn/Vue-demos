@@ -23,7 +23,7 @@
     },
     data() {
       return {
-        dashArray: Math.PI * 100
+        dashArray: Math.   PI * 100
       }
     },
     computed: {

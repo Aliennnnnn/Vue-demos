@@ -25,10 +25,19 @@
               </div>
             </div>
             <div class="playing-lyric-wrapper">
-              <div class="playing-lyric"></div>
+              <div class="playing-lyric">{{playingLyric}}</div>
             </div>
           </div>
-
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current': currentLineNum ===index}"
+                   v-for="(line,index) in currentLyric.lines">{{line.txt}}</p>
+              </div>
+            </div>
+          </scroll>
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
@@ -43,8 +52,8 @@
             <span class="time time-r">{{ format(currentSong.duration) }}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="iconMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -81,7 +90,7 @@
         </div>
       </div>
     </transition>
-    <audio @timeupdate="updateTime" @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
+    <audio @ended="end" @timeupdate="updateTime" @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
   </div> 
 </template>
 
@@ -91,6 +100,10 @@ import animations from 'create-keyframe-animation'
 import {prefixStyle} from '../../common/js/dom.js'
 import ProgressBar from '../../base/progress-bar/progress-bar'
 import ProgressCircle from '../../base/progress-circle/progress-circle'
+import {playMode} from '../../common/js/config.js'
+import {shuffle} from '../../common/js/util.js' 
+import {ERR_OK} from '../../api/config.js'
+import Lyric from 'lyric-parser'
 
 const transform = prefixStyle('transform')
 
@@ -98,21 +111,25 @@ export default {
     data(){
         return {
             songReady: false,
-            currentTime: 0
+            currentTime: 0,
+            currentLyric: null
         }
     },
     computed: {
         cdCls(){
-            return this.playing ? 'play' : 'play pause'
+          return this.playing ? 'play' : 'play pause'
         },
         playIcon(){
-             return this.playing ? 'icon-pause' : 'icon-play'
+          return this.playing ? 'icon-pause' : 'icon-play'
+        },
+        iconMode(){
+          return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
         },
         miniIcon(){
-             return this.playing ? 'icon-pause-mini' : 'icon-play-mini'            
+          return this.playing ? 'icon-pause-mini' : 'icon-play-mini'            
         },
         disableCls(){
-            return this.songReady ? '' : 'disable'
+          return this.songReady ? '' : 'disable'
         },
         percent(){
           return this.currentTime / this.currentSong.duration
@@ -124,7 +141,9 @@ export default {
             'playlist',
             'currentSong',
             'playing',
-            'currentIndex'
+            'currentIndex',
+            'mode',
+            'sequenceList'
         ])
     },
     methods: {
@@ -181,6 +200,17 @@ export default {
             }
             this.setPlayingState(!this.playing)
         }, 
+        end(){
+          if(this.mode === playMode.loop){
+            this.loop()
+          }else{
+            this.next()
+          }
+        },
+        loop(){
+          this.$refs.audio.currentTime = 0
+          this.$refs.audio.play()
+        },
         next(){
             if(!this.songReady) {
                 return
@@ -233,6 +263,31 @@ export default {
             this.togglePlaying()
           }
         },
+        //切换播放模式
+        changeMode(){
+          const mode = (this.mode + 1) % 3
+          this.setPlayMode(mode)
+          let list = null
+          if(mode === playMode.random ){
+            list = shuffle(this.sequenceList)
+          } else{
+            list = this.sequenceList
+          }
+          this.resetCurrentIndex(list)
+          this.setPlaylist(list)
+        },
+        resetCurrentIndex(list){
+          let index = list.findIndex((item) => {
+            return item.id === this.currentSong.id
+          })
+          this.setCurrentIndex(index)
+        },
+        getLyric(){
+          this.currentSong.getLyric().then((lyric) => {
+            this.currentLyric = new Lyric(lyric)
+            console.log(this.currentLyric)
+          })
+        },
         _pad(num, n = 2){
           let len = num.toString().length
           while(len<n){
@@ -269,11 +324,16 @@ export default {
         ...mapMutations({
             setFullScreen: 'SET_FULL_SCREEN',
             setPlayingState: 'SET_PLAYING_STATE',
-            setCurrentIndex: 'SET_CURRENT_INDEX'
+            setCurrentIndex: 'SET_CURRENT_INDEX',
+            setPlayMode: 'SET_PLAY_MODE',
+            setPlaylist: 'SET_PLAYLIST'
         }),
     },
     watch: {
-        currentSong() {
+        currentSong(newSong,oldSong) {
+            if(newSong.id === oldSong.id){
+              return
+            }
             //延时播放
             //延时回调，在下次DOM更新循环之后执行
             //在修改数据后立即使用这个方法，等待DOM更新
@@ -283,6 +343,7 @@ export default {
             this.$nextTick(() => {
                 //DOM更新了
                 this.$refs.audio.play()
+                this.getLyric()
             })          
         },
         playing(newPlaying){

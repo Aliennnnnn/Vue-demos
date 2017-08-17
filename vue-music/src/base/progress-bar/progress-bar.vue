@@ -56,7 +56,11 @@
         this._triggerPercent()
       },
       progressClick(e) {
-        this._offset(e.offsetX)
+        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const offsetWidth = e.pageX - rect.left
+        this._offset(offsetWidth)
+        // 这里当我们点击 progressBtn 的时候，e.offsetX 获取不对
+        // this._offset(e.offsetX)
         this._triggerPercent()
       },
       _triggerPercent(){
@@ -66,12 +70,12 @@
       },
       _offset(offsetWidth){
         this.$refs.progress.style.width = `${offsetWidth}px`
-        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
+        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth-8}px, 0, 0)`
       }
     },
     watch: {
       percent(newPercent){
-        if( newPercent >= 0 && this.initiated == false ){
+        if( newPercent >= 0 && !this.touch.initiated ){
           //进度条的宽度
           const barWidth = this.$refs.progressBar.clientWidth
           //偏移的宽度
