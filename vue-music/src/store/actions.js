@@ -32,3 +32,16 @@ export const randomPlay = function({commit},{list}){
     commit(types.SET_FULL_SCREEN,true)
     commit(types.SET_PLAYING_STATE,true)
 }
+
+export const insertSong = function ({commit, state}, song){
+    let playlist = state.playlist
+    let sequenceList = state.sequenceList
+    let currentIndex = state.currentIndex
+    //记录当前歌曲
+    let currentSong = playlist[currentIndex]
+    let fpIndex = findIndex(playlist, song)
+    //因为是插入歌曲，所以索引要加一
+    currentIndex++
+    //插入这首歌到当前索引位置
+    playlist.splice(currentIndex,0,song)
+}

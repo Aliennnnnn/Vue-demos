@@ -28,6 +28,7 @@
             }
         },
         created() {
+            //query变化时派发事件
             this.$watch('query', (newQuery) => {
                 this.$emit('query', newQuery)
             })

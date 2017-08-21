@@ -59,7 +59,8 @@
             me.$emit('scroll', pos)
           })
         }
-
+        
+        //下拉刷新
         if (this.pullup) {
           this.scroll.on('scrollEnd', () => {
             if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
