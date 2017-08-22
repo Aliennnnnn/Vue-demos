@@ -3,6 +3,8 @@
         :pullup="pullup" 
         class="suggest" 
         :data="result"
+        :beforeScroll="beforeScroll"
+        @beforeScroll="listScroll"
         @scrollToEnd="searchMore"
         ref="suggest">
         <ul class="suggest-list">
@@ -16,6 +18,9 @@
             </li>
             <loading v-show="hasMore" title=""></loading>
         </ul>
+        <div class="no-result-wrapper">
+            <no-result v-show="!hasMore && !result.length" title="抱歉，暂无搜索结果"></no-result>
+        </div>
     </scroll>
 </template>
 
@@ -26,7 +31,8 @@
     import Scroll from '../../base/scroll/scroll.vue'
     import Loading from '../../base/loading/loading.vue'
     import Singer from '../../common/js/singer.js'
-    import {mapMutations} from 'vuex'
+    import {mapMutations,mapActions} from 'vuex'
+    import NoResult from '../../base/no-result/no-result.vue'
 
     const TYPE_SINGER = 'singer'
     const perpage = 20
@@ -47,7 +53,8 @@
                 page: 1,
                 result: [],
                 pullup: true,
-                hasMore: true
+                hasMore: true,
+                beforeScroll: true
             }
         },
         methods:{
@@ -99,7 +106,14 @@
                         path: `/search/${singer.id}`
                     })
                     this.setSinger(singer)
+                }else{
+                    this.insertSong(item)
                 }
+
+                this.$emit('select',item)
+            },
+            listScroll(){
+                this.$emit('listScroll')
             },
             _checkMore(data){
                 const song = data.song
@@ -128,11 +142,15 @@
             },
             ...mapMutations({
                 setSinger: 'SET_SINGER'
-            })
+            }),
+            ...mapActions([
+                'insertSong'
+            ])
         },
         components: {
             Scroll,
-            Loading
+            Loading,
+            NoResult
         },
         watch: {
             //input框数据发生变化就开始搜索

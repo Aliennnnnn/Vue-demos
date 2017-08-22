@@ -1,6 +1,7 @@
 import * as types from '../store/mutation-types.js'
 import {playMode} from '../common/js/config.js'
 import {shuffle} from '../common/js/util.js'
+import {saveSearch} from '../common/js/cache.js'
 
 function findIndex(list, song){
     return list.findIndex((item) => {
@@ -34,7 +35,7 @@ export const randomPlay = function({commit},{list}){
 }
 
 export const insertSong = function ({commit, state}, song){
-    let playlist = state.playlist
+    let playlist = state.playlist.slice()
     let sequenceList = state.sequenceList
     let currentIndex = state.currentIndex
     //记录当前歌曲
@@ -44,4 +45,36 @@ export const insertSong = function ({commit, state}, song){
     currentIndex++
     //插入这首歌到当前索引位置
     playlist.splice(currentIndex,0,song)
+    if(fpIndex > -1){
+        if(currentIndex > fpIndex){
+            playlist.splice(fpIndex, 1)
+            currentIndex--
+        }else {
+            playlist.splice(fpIndex + 1, 1)
+        }
+    }
+
+    let currentSIndex = findIndex(sequenceList, currentSong) + 1
+    
+    let fsIndex = findIndex(sequenceList, song)
+
+    sequenceList.splice(currentSIndex, 0, song)
+
+    if(fsIndex > -1){
+        if(currentSIndex > fsIndex){
+            sequenceList.splice(fsIndex, 1)
+        }else{
+            sequenceList.splice(fsIndex + 1, 1)
+        }
+    }
+
+    commit(types.SET_PLAYLIST,playlist)
+    commit(types.SET_SEQUENCE_LIST,sequenceList)
+    commit(types.SET_CURRENT_INDEX,currentIndex)
+    commit(types.SET_FULL_SCREEN,true)
+    commit(types.SET_PLAYING_STATE,true)
+}
+
+export const saveSearchHistory = function ({commit}, query) {
+    commit(types.SET_SEARCH_HISTORY, saveSearch(query))
 }

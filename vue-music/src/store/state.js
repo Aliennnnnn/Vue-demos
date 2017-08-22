@@ -19,7 +19,9 @@ const state = {
     //歌单
     disc: {},
     //排行榜
-    topList: {}
+    topList: {},
+    //搜索历史
+    searchHistory: []
 }
 
 export default state

@@ -25,6 +25,8 @@ export const disc = state => state.disc
 
 export const topList = state => state.topList
 
+export const searchHistory = state => state.searchHistory
+
 
 //通过state里的playList和currentIndex计算出currentSong状态
 export const currentSong = (state) => {
