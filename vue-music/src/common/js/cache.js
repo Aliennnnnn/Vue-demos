@@ -1,5 +1,8 @@
 import storage from 'good-storage'
 
+const SEARCH_KEY = '__search__'
+const SEARCH_MAX_LEN = 15
+
 function insertArray(arr, val, compare, maxLen) {
   const index = arr.findIndex(compare)
   if (index === 0) {
@@ -30,5 +33,8 @@ export function saveSearch(query) {
   return searches
 }
 
+export function loadSearch() {
+  return storage.get(SEARCH_KEY, [])
+}
 
 

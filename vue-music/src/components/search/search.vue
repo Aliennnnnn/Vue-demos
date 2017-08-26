@@ -3,19 +3,28 @@
         <div class="search-box-wrapper">
 		    <search-box ref="searchBox" @query="onQueryChange"></search-box>
         </div>
-        <div class="shortcut-wrapper" v-show="!query">
-            <div class="shortcut">
+        <div ref="shortcutWrapper" class="shortcut-wrapper" v-show="!query">
+            <scroll class="shortcut" ref="shortcut">
                 <div class="hot-key">
                     <h1 class="title">热门搜索</h1>
                     <ul>
                         <li @click="addQuery(item.k)" class="item" v-for="item in hotKey">
-                            {{ item.k }}
+                            <span>{{ item.k }}</span>
                         </li>
                     </ul>
                 </div>
-            </div>
+                <div v-show="searchHistory.length" class="search-history">
+                  <h1 class="title">
+                    <span class="text">搜索历史</span>
+                    <span class="clear">
+                      <i class="icon-clear"></i>
+                    </span>
+                  </h1>
+                  <search-list :searches="searchHistory"></search-list>
+                </div>
+            </scroll>
         </div>
-        <div class="search-result" v-show="query">
+        <div ref="searchResult" class="search-result" v-show="query">
             <suggest @select="saveSearch" @listScroll="blurInput" :query="query"></suggest>
         </div>
         <router-view></router-view>
@@ -23,16 +32,26 @@
 </template>
 
 <script type="text/javascript">
-	import SearchBox from '../../base/search-box/search-box.vue'
+	  import SearchBox from '../../base/search-box/search-box.vue'
     import {getHotKey} from '../../api/search.js'
     import {ERR_OK} from '../../api/config.js'
     import Suggest from '../../components/suggest/suggest.vue'
-    import {mapActions} from 'vuex'
+    import {mapActions,mapGetters} from 'vuex'
+    import SearchList from '../../base/search-list/search-list.vue'
+    import {playlistMixin} from '../../common/js/mixin.js'
+    import Scroll from '../../base/scroll/scroll.vue'
 
     export default{
         components: {
             SearchBox,
-            Suggest
+            Suggest,
+            SearchList,
+            Scroll
+        },
+        computed: {
+          ...mapGetters([
+            'searchHistory'
+          ])
         },
         data(){
             return {
@@ -57,6 +76,12 @@
             },
             saveSearch(){
               this.saveSearchHistory(this.query)
+            },
+            handlePlaylist(playlist){
+              const bottom = this.$refs.shortcutWrapper.style.bottom = bottom
+              this.$refs.shortcut.refresh()
+              this.$refs.shortcutWrapper.style.bottom = bottom     
+              this.$refs.suggest.refresh()        
             },
             _getHotKey(){
                 getHotKey().then((res) => {
