@@ -21,6 +21,7 @@
                     </span>
                   </h1>
                   <search-list :searches="searchHistory"></search-list>
+                   <confirm ref="confirm" @confirm="clearSearchHistory" text="是否清空所有搜索历史" confirmBtnText="清空"></confirm>
                 </div>
             </scroll>
         </div>
@@ -40,13 +41,15 @@
     import SearchList from '../../base/search-list/search-list.vue'
     import {playlistMixin} from '../../common/js/mixin.js'
     import Scroll from '../../base/scroll/scroll.vue'
+    import Confirm from '../../base/confirm/confirm.vue'
 
     export default{
         components: {
             SearchBox,
             Suggest,
             SearchList,
-            Scroll
+            Scroll,
+            Confirm
         },
         computed: {
           ...mapGetters([
@@ -77,6 +80,9 @@
             saveSearch(){
               this.saveSearchHistory(this.query)
             },
+            showConfirm() {
+        this.$refs.confirm.show()
+      },
             handlePlaylist(playlist){
               const bottom = this.$refs.shortcutWrapper.style.bottom = bottom
               this.$refs.shortcut.refresh()
@@ -91,7 +97,9 @@
                 })
             },
             ...mapActions([
-              'saveSearchHistory'
+              'saveSearchHistory',
+              'clearSearchHistory',
+              'deleteSearchHistory'
             ])
         }
     }

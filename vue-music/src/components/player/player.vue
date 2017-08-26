@@ -88,11 +88,12 @@
               <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
             </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <playlist ref="playlist"></playlist>
     <audio @ended="end" @timeupdate="updateTime" @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
   </div> 
 </template>
@@ -108,11 +109,14 @@ import {shuffle} from '../../common/js/util.js'
 import {ERR_OK} from '../../api/config.js'
 import Lyric from 'lyric-parser'
 import Scroll from '../../base/scroll/scroll.vue'
+import Playlist from '../../components/playlist/playlist.vue'
+import {playerMixin} from '../../common/js/mixin.js'
 
 const transform = prefixStyle('transform')
 const transitionDuration = prefixStyle('transitionDuration')
 
 export default {
+    mixins: [playerMixin],
     data(){
         return {
             songReady: false,
@@ -332,6 +336,10 @@ export default {
           }
           this.playingLyric = txt
         },
+        //父组件使用子组件的方法
+        showPlaylist(){
+          this.$refs.playlist.show()
+        },
         middleTouchStart(e) {
           this.touch.initiated = true
           // 用来判断是否是一次移动
@@ -436,6 +444,9 @@ export default {
     },
     watch: {
         currentSong(newSong,oldSong) {
+            if(!newSong.id){
+              return
+            }
             if(newSong.id === oldSong.id){
               return
             }
@@ -462,7 +473,8 @@ export default {
     components: {
       ProgressBar,
       ProgressCircle,
-      Scroll
+      Scroll,
+      Playlist
     }
 }
 </script>
