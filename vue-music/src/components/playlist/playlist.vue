@@ -11,7 +11,7 @@
                         </span>
                     </h1>
                 </div>
-                <scroll ref="listContent" :data="sequenceList" class="list-content">
+                <scroll ref="listContent" :refreshDelay="refreshDelay" :data="sequenceList" class="list-content">
                     <ul>
                         <li ref="listItem" @click="selectItem(item,index)" class="item" v-for="(item,index) in sequenceList">
                             <i class="current" :class="getCurrentIcon(item)"></i>
@@ -26,7 +26,7 @@
                     </ul>
                 </scroll>
                 <div class="list-operate">
-                    <div class="add">
+                    <div class="add" @click.stop="addSong">
                         <i class="icon-add"></i>
                         <span class="text">添加歌曲到队列</span>
                     </div>
@@ -35,6 +35,7 @@
                     <span>关闭</span>
                 </div>
                 <confirm @confirm="confirmClear" ref="confirm" text="是否清空播放列表" confirmBtnText="清空"></confirm>
+                <add-song ref="addSong"></add-song>
             </div>
         </div>
     </transition>
@@ -46,16 +47,19 @@
     import Scroll from '../../base/scroll/scroll.vue'
     import Confirm from '../../base/confirm/confirm.vue'
     import {playerMixin} from '../../common/js/mixin.js'
+    import addSong from '../../components/add-song/add-song.vue'
 
     export default{
         mixins: [playerMixin],
         components: {
             Scroll,
-            Confirm
+            Confirm,
+            addSong
         },  
         data() {
             return {
-                showFlag: false
+                showFlag: false,
+                refreshDelay: 100
             }
         },
         computed: {
@@ -103,7 +107,7 @@
             },
             deleteOne(item){
                 this.deleteSong(item)
-                if(!this.platlist.length){
+                if(!this.playlist.length){
                     this.hide()
                 }
             },
@@ -113,6 +117,9 @@
             confirmClear(){
                 this.deleteSongList()
                 this.hide()
+            },
+            addSong(){
+                this.$refs.addSong.show()
             },
             ...mapMutations({
                 'setCurrentIndex': 'SET_CURRENT_INDEX',

@@ -4,7 +4,7 @@
 		    <search-box ref="searchBox" @query="onQueryChange"></search-box>
         </div>
         <div ref="shortcutWrapper" class="shortcut-wrapper" v-show="!query">
-            <scroll class="shortcut" ref="shortcut">
+            <scroll :refreshDelay="refreshDelay" class="shortcut" ref="shortcut">
                 <div class="hot-key">
                     <h1 class="title">热门搜索</h1>
                     <ul>
@@ -26,7 +26,7 @@
             </scroll>
         </div>
         <div ref="searchResult" class="search-result" v-show="query">
-            <suggest @select="saveSearch" @listScroll="blurInput" :query="query"></suggest>
+            <suggest ref="suggest" @select="saveSearch" @listScroll="blurInput" :query="query"></suggest>
         </div>
         <router-view></router-view>
 	</div>
@@ -37,13 +37,14 @@
     import {getHotKey} from '../../api/search.js'
     import {ERR_OK} from '../../api/config.js'
     import Suggest from '../../components/suggest/suggest.vue'
-    import {mapActions,mapGetters} from 'vuex'
+    import {mapActions} from 'vuex'
     import SearchList from '../../base/search-list/search-list.vue'
-    import {playlistMixin} from '../../common/js/mixin.js'
+    import {playlistMixin,searchMixin} from '../../common/js/mixin.js'
     import Scroll from '../../base/scroll/scroll.vue'
     import Confirm from '../../base/confirm/confirm.vue'
 
     export default{
+        mixins: [playlistMixin,searchMixin],
         components: {
             SearchBox,
             Suggest,
@@ -52,14 +53,13 @@
             Confirm
         },
         computed: {
-          ...mapGetters([
-            'searchHistory'
-          ])
+          shortcut() {
+            return this.hotKey.concat(this.searchHistory)
+          }
         },
         data(){
             return {
-                hotKey: [],
-                query: ''
+                hotKey: []
             }
         },
         created(){
@@ -71,18 +71,9 @@
             addQuery(query){
                 this.$refs.searchBox.setQuery(query)
             },
-            onQueryChange(query){
-                this.query = query
-            },
-            blurInput(){
-              this.$refs.searchBox.blur()
-            },
-            saveSearch(){
-              this.saveSearchHistory(this.query)
-            },
             showConfirm() {
-        this.$refs.confirm.show()
-      },
+              this.$refs.confirm.show()
+            },
             handlePlaylist(playlist){
               const bottom = this.$refs.shortcutWrapper.style.bottom = bottom
               this.$refs.shortcut.refresh()
@@ -90,16 +81,14 @@
               this.$refs.suggest.refresh()        
             },
             _getHotKey(){
-                getHotKey().then((res) => {
-                    if(res.code === ERR_OK){
-                       this.hotKey = res.data.hotkey.slice(0, 10)
-                    }
-                })
+              getHotKey().then((res) => {
+                  if(res.code === ERR_OK){
+                     this.hotKey = res.data.hotkey.slice(0, 10)
+                  }
+              })
             },
             ...mapActions([
-              'saveSearchHistory',
-              'clearSearchHistory',
-              'deleteSearchHistory'
+              'clearSearchHistory'
             ])
         }
     }
