@@ -68,7 +68,7 @@
               <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-not-favorite"></i>
+              <i class="icon" @click="toggleFavorite(currentSong)" :class="getFavoriteIcon(currentSong)"></i>
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@
       </div>
     </transition>
     <playlist ref="playlist"></playlist>
-    <audio @ended="end" @timeupdate="updateTime" @canplay="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
+    <audio @ended="end" @timeupdate="updateTime" @play="ready" @error="error" ref="audio" :src="currentSong.url"></audio>
   </div> 
 </template>
 
@@ -456,9 +456,13 @@ export default {
             }
             if(this.currentLyric){
               this.currentLyric.stop()
+              this.currentTime = 0
+              this.playingLyric = ''
+              this.currentLineNum = 0
             }
             //延时播放
-            setTimeout(() => {
+            clearTimeout(this.timer)
+            this.timer = setTimeout(() => {
                 this.$refs.audio.play()
                 this.getLyric()
             }, 1000)          
@@ -712,6 +716,9 @@ export default {
       .icon-play-mini, .icon-pause-mini, .icon-playlist
         font-size: 30px
         color: $color-theme-d
+      .icon-playlist
+        position: relative
+        top: -2px
       .icon-mini
         font-size: 32px
         position: absolute
