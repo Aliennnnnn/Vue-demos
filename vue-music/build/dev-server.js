@@ -64,7 +64,7 @@ apiRoutes.get('/lyric', function (req, res) {
   })
 })
 
-app.use('/', apiRoutes)
+app.use('https://aliennnnnn.github.io/', apiRoutes)
 
 var compiler = webpack(webpackConfig)
 
