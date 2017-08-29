@@ -16,7 +16,7 @@ export function getRecommend(){
 
 //歌单数据
 // export function getDiscList(){
-// 	const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg?'
+// 	const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
 
 // 	const data = Object.assign({}, commonParams,{
 // 		platform: 'yqq',
@@ -26,8 +26,7 @@ export function getRecommend(){
 // 		sortId: 5,
 // 		needNewCode: 0,
 // 		categoryId: 10000000,
-// 		rnd: Math.random(),
-// 		format: 'json'
+// 		rnd: Math.random()
 // 	})
 
 // 	return jsonp(url, data, options)
