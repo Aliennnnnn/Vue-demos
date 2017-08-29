@@ -15,7 +15,7 @@ export function getRecommend(){
 }
 
 export function getDiscList() {
-  const url = 'https://aliennnnnn.github.io/getDiscList'
+  const url = '/api/getDiscList'
 
   const data = Object.assign({}, commonParams, {
     platform: 'yqq',
