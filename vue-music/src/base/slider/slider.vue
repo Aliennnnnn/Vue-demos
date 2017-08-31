@@ -48,7 +48,7 @@ import {addClass} from '../../common/js/dom.js'
 					return
 				}
 				this._setSliderWidth(true)
-				this.slider.refresh()
+				this.slider.refresh()                
 			})
 		},
 		methods: {
@@ -72,7 +72,7 @@ import {addClass} from '../../common/js/dom.js'
 
 				//如果loop=true,则需要增加两个图片的宽度以保证无缝切换
 				if( this.loop && !isResized ){
-					width += 2* sliderWidth
+					width += 2 * sliderWidth
 				}
 				this.$refs.sliderGroup.style.width = width + 'px'
 			},
