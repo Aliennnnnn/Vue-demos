@@ -19,6 +19,14 @@ npm run build --report
 ```
 
 
+## 效果截图
+<img style="float: left;clear: both;" src="static/1.jpg" width="40%">
+<img style="margin-top: -26px; margin-left: 20px;" src="static/2.png" width="40%">
+<img style="float: left;clear: both;" src="static/3.png" width="40%">
+<img style="margin-top: -26px; margin-left: 20px;" src="static/4.png" width="40%">
+<img style="float: left;clear: both;" src="static/6.png" width="40%">
+<img style="margin-top: -26px; margin-left: 20px;" src="static/7.png" width="40%">
+
 
 
 ## 项目树
@@ -164,12 +172,14 @@ npm run build --report
 ```
 
 ## 技术栈
-* MVVM框架：Vue.js （版本2.x）
-* 状态管理：Vuex
-* 前端路由：Vue Router
+* MVVM框架：Vue （版本2.x）
+* 状态管理：vuex
+* 前端路由：vue-router
+* 构建工具：vue-cli
+* 打包工具: webpack 2.0
 * 服务端通讯：axios、jsonp
+* 懒加载：vue-lazyload
 * 移动端滚动库：better-scroll
-* 构建工具：webpack 2.0
 * 源码：es6
 
 ## 基础组件
@@ -204,3 +214,7 @@ npm run build --report
 13. tab：顶部导航栏组件
 14. top-list：排行榜详情页组件
 15. user-center：用户中心页组件
+
+
+## 注意
+所有数据来自于QQ音乐，若接口改变就需要修改 jsonp 和 axios 代码
