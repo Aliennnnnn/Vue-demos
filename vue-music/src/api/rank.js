@@ -38,7 +38,7 @@ export function getMusicList(topid) {
     tpl:3,
     page:'detail',
     type:'top',
-    topid:27,
+    topid
   })
 
   return jsonp(url, data, options)
